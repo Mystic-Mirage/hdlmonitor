@@ -52,9 +52,8 @@ class Table(tkinter.Frame):
         tkinter.Frame.__init__(self, top)
         self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5, pady=5)
 
-        self.scrollbar = ttk.Scrollbar(self)
+        self.scrollbar = ttk.Scrollbar(self, command=self.yview)
         self.scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-        self.scrollbar.config(command=self.yview)
 
         self.columns = []
 
@@ -73,13 +72,16 @@ class Table(tkinter.Frame):
         self.colors_num = len(self.colors)
         self.count = 0
 
+        self.bottom = True
+
     def append(self, row):
         color = self.colors[self.count % self.colors_num]
         for subrow in row:
             for column, value in zip(self.columns, subrow):
                 column.listbox.insert(tkinter.END, value)
-                column.listbox.yview(tkinter.END)
                 column.listbox.itemconfig(tkinter.END, bg=color)
+                if self.bottom:
+                    column.listbox.see(tkinter.END)
         self.count += 1
 
     def clear(self):
@@ -118,6 +120,7 @@ class Table(tkinter.Frame):
         return 'break'
 
     def yview(self, *args):
+        self.bottom = self.scrollbar.get()[1] == 1.0
         for column in self.columns:
             column.listbox.yview(*args)
 
