@@ -132,9 +132,9 @@ class ListenerGui(ttk.Frame):
         self.master.resizable(0, 0)
         self.master.title('SmartBus Listener NG')
         try:
-            self.master.iconbitmap('sblistener.ico')
+            self.master.iconbitmap('sblistenerng.ico')
         except:
-            icon = tkinter.PhotoImage(file='sblistener.gif')
+            icon = tkinter.PhotoImage(file='sblistenerng.gif')
             self.master.tk.call('wm', 'iconphoto', self.master._w, icon)
 
         self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5,
