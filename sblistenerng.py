@@ -43,6 +43,8 @@ class Table(ttk.Frame):
 
         self.scrollbar = ttk.Scrollbar(self, command=self.yview)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        self.scrollbar.bind('<Button-4>', self.on_button4)
+        self.scrollbar.bind('<Button-5>', self.on_button5)
 
         self.columns = []
 
