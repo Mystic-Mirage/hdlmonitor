@@ -3,10 +3,10 @@ from __future__ import division, print_function, unicode_literals
 from os import linesep
 
 try:
-    import Tkinter as tkinter
+    import Tkinter as tk
     import ttk
 except:
-    import tkinter
+    import tkinter as tk
     from tkinter import ttk
 
 import smartbus
@@ -16,15 +16,15 @@ class Column(ttk.Frame):
 
     def __init__(self, top, text, width, yscrollcmd):
         ttk.Frame.__init__(self, top)
-        self.pack(expand=tkinter.TRUE, fill=tkinter.Y, side=tkinter.LEFT)
-        self.label = ttk.Label(self, text=text, anchor=tkinter.CENTER,
-            justify=tkinter.CENTER, relief=tkinter.GROOVE, padding=5)
-        self.label.pack(expand=tkinter.TRUE, fill=tkinter.BOTH)
-        self.listbox = tkinter.Listbox(self, activestyle=tkinter.NONE,
-            exportselection=tkinter.FALSE, font='Courier', height=24,
-            highlightthickness=0, selectmode=tkinter.EXTENDED,
+        self.pack(expand=tk.TRUE, fill=tk.Y, side=tk.LEFT)
+        self.label = ttk.Label(self, text=text, anchor=tk.CENTER,
+            justify=tk.CENTER, relief=tk.GROOVE, padding=5)
+        self.label.pack(expand=tk.TRUE, fill=tk.BOTH)
+        self.listbox = tk.Listbox(self, activestyle=tk.NONE,
+            exportselection=tk.FALSE, font='Courier', height=24,
+            highlightthickness=0, selectmode=tk.EXTENDED,
             yscrollcommand=yscrollcmd, width=width)
-        self.listbox.pack(fill=tkinter.X)
+        self.listbox.pack(fill=tk.X)
         self.listbox.bind('<Enter>', self.on_enter)
 
     def on_enter(self, _):
@@ -41,10 +41,10 @@ class Table(ttk.Frame):
 
     def __init__(self, top, columns, select_callback):
         ttk.Frame.__init__(self, top)
-        self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5, pady=5)
+        self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
         self.scrollbar = ttk.Scrollbar(self, command=self.yview)
-        self.scrollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         self.columns = []
 
@@ -69,15 +69,15 @@ class Table(ttk.Frame):
         color = self.colors[self.count % self.colors_num]
         for subrow in row:
             for column, value in zip(self.columns, subrow):
-                column.listbox.insert(tkinter.END, value)
-                column.listbox.itemconfig(tkinter.END, bg=color)
+                column.listbox.insert(tk.END, value)
+                column.listbox.itemconfig(tk.END, bg=color)
                 if self.bottom:
-                    column.listbox.see(tkinter.END)
+                    column.listbox.see(tk.END)
         self.count += 1
 
     def clear(self):
         for column in self.columns:
-            column.listbox.delete(0, tkinter.END)
+            column.listbox.delete(0, tk.END)
 
     def on_button4(self, _):
         delta = -5
@@ -94,7 +94,7 @@ class Table(ttk.Frame):
     def on_select(self, event):
         selection = event.widget.curselection()
         for column in self.columns:
-            column.listbox.selection_clear(0, tkinter.END)
+            column.listbox.selection_clear(0, tk.END)
             if selection:
                 column.listbox.selection_set(selection[0], selection[-1])
         self.select_callback(selection)
@@ -107,7 +107,7 @@ class Table(ttk.Frame):
 
     def yscroll(self, delta):
         for column in self.columns:
-            column.listbox.yview(tkinter.SCROLL, delta, tkinter.UNITS)
+            column.listbox.yview(tk.SCROLL, delta, tk.UNITS)
         return 'break'
 
     def yview(self, *args):
@@ -125,13 +125,13 @@ class ListenerGui(ttk.Frame):
         try:
             self.master.iconbitmap('sblistenerng.ico')
         except:
-            icon = tkinter.PhotoImage(file='sblistenerng.gif')
+            icon = tk.PhotoImage(file='sblistenerng.gif')
             self.master.tk.call('wm', 'iconphoto', self.master._w, icon)
 
-        self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5, pady=5)
+        self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
         self.buttonbar = ttk.Frame(self)
-        self.buttonbar.pack(fill=tkinter.X, padx=5, pady=5)
+        self.buttonbar.pack(fill=tk.X, padx=5, pady=5)
 
         self.btn_start = ttk.Button(self.buttonbar, text='Start',
             command=self.start, width=10)
@@ -141,12 +141,12 @@ class ListenerGui(ttk.Frame):
 
         self.btn_copy = ttk.Button(self.buttonbar,
             text='Copy to clipboard', command=self.copy,
-            state=tkinter.DISABLED)
-        self.btn_copy.pack(side=tkinter.RIGHT)
+            state=tk.DISABLED)
+        self.btn_copy.pack(side=tk.RIGHT)
 
         self.btn_clear = ttk.Button(self.buttonbar, text='Clear',
-            command=self.clear, state=tkinter.DISABLED)
-        self.btn_clear.pack(side=tkinter.RIGHT)
+            command=self.clear, state=tk.DISABLED)
+        self.btn_clear.pack(side=tk.RIGHT)
 
         self.table = Table(self, (
             ('Source\nSubnetID', 5),
@@ -168,8 +168,8 @@ class ListenerGui(ttk.Frame):
 
     def clear(self):
         self.table.clear()
-        self.btn_clear.config(state=tkinter.DISABLED)
-        self.btn_copy.config(state=tkinter.DISABLED)
+        self.btn_clear.config(state=tk.DISABLED)
+        self.btn_copy.config(state=tk.DISABLED)
 
     def copy(self):
         rows = []
@@ -227,22 +227,22 @@ class ListenerGui(ttk.Frame):
             ]]
 
         self.table.append(row)
-        self.btn_clear.config(state=tkinter.NORMAL)
+        self.btn_clear.config(state=tk.NORMAL)
 
     def select_callback(self, selection):
         if selection:
-            self.btn_copy.config(state=tkinter.NORMAL)
+            self.btn_copy.config(state=tk.NORMAL)
         else:
-            self.btn_copy.config(state=tkinter.DISABLED)
+            self.btn_copy.config(state=tk.DISABLED)
 
     def start(self):
         self.btn_start.pack_forget()
-        self.btn_stop.pack(side=tkinter.LEFT)
+        self.btn_stop.pack(side=tk.LEFT)
         self.listener.register()
 
     def stop(self):
         self.btn_stop.pack_forget()
-        self.btn_start.pack(side=tkinter.LEFT)
+        self.btn_start.pack(side=tk.LEFT)
         self.listener.unregister()
 
 
