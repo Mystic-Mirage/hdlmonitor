@@ -100,6 +100,7 @@ class Table(ttk.Frame):
         self.select_callback(selection)
 
     def scroll_set(self, lo, hi):
+        self.autoscroll = float(hi) > 0.95
         self.yview(tk.MOVETO, lo)
         self.scrollbar.set(lo, hi)
 
@@ -114,7 +115,6 @@ class Table(ttk.Frame):
         return 'break'
 
     def yview(self, *args):
-        self.autoscroll = self.scrollbar.get()[1] == 1.0
         for column in self.columns:
             column.listbox.yview(*args)
 
