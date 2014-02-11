@@ -44,10 +44,10 @@ class Listbox(tkinter.Listbox):
             selectmode=tkinter.EXTENDED, *args, **kwargs)
 
 
-class Table(tkinter.Frame):
+class Table(ttk.Frame):
 
     def __init__(self, top, columns, select_callback):
-        tkinter.Frame.__init__(self, top)
+        ttk.Frame.__init__(self, top)
         self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5, pady=5)
 
         self.scrollbar = ttk.Scrollbar(self, command=self.yview)
