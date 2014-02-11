@@ -5,11 +5,9 @@ from os import linesep
 try:
     import Tkinter as tkinter
     import ttk
-    import tkFont as tkfont
 except:
     import tkinter
     from tkinter import ttk
-    from tkinter import font as tkfont
 
 import smartbus
 
