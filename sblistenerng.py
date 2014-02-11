@@ -63,7 +63,7 @@ class Table(ttk.Frame):
         self.colors_num = len(self.colors)
         self.count = 0
 
-        self.bottom = True
+        self.autoscroll = True
 
     def append(self, row):
         color = self.colors[self.count % self.colors_num]
@@ -71,7 +71,7 @@ class Table(ttk.Frame):
             for column, value in zip(self.columns, subrow):
                 column.listbox.insert(tk.END, value)
                 column.listbox.itemconfig(tk.END, bg=color)
-                if self.bottom:
+                if self.autoscroll:
                     column.listbox.see(tk.END)
         self.count += 1
 
@@ -111,7 +111,7 @@ class Table(ttk.Frame):
         return 'break'
 
     def yview(self, *args):
-        self.bottom = self.scrollbar.get()[1] == 1.0
+        self.autoscroll = self.scrollbar.get()[1] == 1.0
         for column in self.columns:
             column.listbox.yview(*args)
 
