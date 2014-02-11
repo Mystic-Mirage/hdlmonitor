@@ -50,7 +50,7 @@ class Table(ttk.Frame):
 
         for text, width in columns:
             column = Column(self, text=text, width=width,
-                yscrollcmd=self.scrollbar.set)
+                yscrollcmd=self.scroll_set)
             column.listbox.bind('<MouseWheel>', self.on_mousewheel)
             column.listbox.bind('<Button-4>', self.on_button4)
             column.listbox.bind('<Button-5>', self.on_button5)
@@ -98,6 +98,10 @@ class Table(ttk.Frame):
             if selection:
                 column.listbox.selection_set(selection[0], selection[-1])
         self.select_callback(selection)
+
+    def scroll_set(self, lo, hi):
+        self.yview(tk.MOVETO, lo)
+        self.scrollbar.set(lo, hi)
 
     def selection_get(self):
         selection = []
