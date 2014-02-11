@@ -106,8 +106,7 @@ class Table(ttk.Frame):
         return zip(*selection)
 
     def yscroll(self, delta):
-        for column in self.columns:
-            column.listbox.yview(tk.SCROLL, delta, tk.UNITS)
+        self.yview(tk.SCROLL, delta, tk.UNITS)
         return 'break'
 
     def yview(self, *args):
