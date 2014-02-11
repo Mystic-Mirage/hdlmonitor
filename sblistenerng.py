@@ -153,7 +153,7 @@ class ListenerGui(ttk.Frame):
             ('Source\nSubnetID', 5),
             ('Source\nDeviceID', 5),
             ('Source\nDevice Type', 7),
-            ('Command\n(hex)', 8),
+            ('Command\n(hex)', 6),
             ('Destination\nSubnetID', 5),
             ('Destination\nDeviceID', 5),
             ('Data (hex)', 25),
