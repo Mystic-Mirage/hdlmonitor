@@ -129,8 +129,7 @@ class ListenerGui(ttk.Frame):
             icon = tkinter.PhotoImage(file='sblistenerng.gif')
             self.master.tk.call('wm', 'iconphoto', self.master._w, icon)
 
-        self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5,
-            pady=5)
+        self.pack(fill=tkinter.BOTH, expand=tkinter.TRUE, padx=5, pady=5)
 
         self.buttonbar = ttk.Frame(self)
         self.buttonbar.pack(fill=tkinter.X, padx=5, pady=5)
