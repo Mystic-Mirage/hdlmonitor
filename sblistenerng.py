@@ -16,10 +16,9 @@ class Column(ttk.Frame):
 
     def __init__(self, top, text, width, yscrollcmd):
         ttk.Frame.__init__(self, top)
-        ttk.Style().configure('TLabel', anchor=tkinter.CENTER,
-            justify=tkinter.CENTER, relief=tkinter.GROOVE, padding=5)
         self.pack(expand=tkinter.TRUE, fill=tkinter.Y, side=tkinter.LEFT)
-        self.label = ttk.Label(self, text=text)
+        self.label = ttk.Label(self, text=text, anchor=tkinter.CENTER,
+            justify=tkinter.CENTER, relief=tkinter.GROOVE, padding=5)
         self.label.pack(expand=tkinter.TRUE, fill=tkinter.BOTH)
         self.listbox = tkinter.Listbox(self, activestyle=tkinter.NONE,
             exportselection=tkinter.FALSE, font='Courier', height=24,
