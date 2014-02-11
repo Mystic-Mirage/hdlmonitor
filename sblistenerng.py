@@ -21,7 +21,9 @@ class Column(ttk.Frame):
         self.pack(expand=tkinter.TRUE, fill=tkinter.Y, side=tkinter.LEFT)
         self.label = ttk.Label(self, text=text)
         self.label.pack(expand=tkinter.TRUE, fill=tkinter.BOTH)
-        self.listbox = Listbox(self, exportselection=tkinter.FALSE,
+        self.listbox = tkinter.Listbox(self, activestyle=tkinter.NONE,
+            exportselection=tkinter.FALSE, font='Courier', height=24,
+            highlightthickness=0, selectmode=tkinter.EXTENDED,
             yscrollcommand=yscrollcmd, width=width)
         self.listbox.pack(fill=tkinter.X)
         self.listbox.bind('<Enter>', self.on_enter)
@@ -34,14 +36,6 @@ class Column(ttk.Frame):
         for i in self.listbox.curselection():
             selection.append(self.listbox.get(int(i)))
         return selection
-
-
-class Listbox(tkinter.Listbox):
-
-    def __init__(self, top, *args, **kwargs):
-        tkinter.Listbox.__init__(self, top, activestyle=tkinter.NONE,
-            font='Courier', height=24, highlightthickness=0,
-            selectmode=tkinter.EXTENDED, *args, **kwargs)
 
 
 class Table(ttk.Frame):
