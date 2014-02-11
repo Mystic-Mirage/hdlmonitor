@@ -1,5 +1,3 @@
-from __future__ import division, print_function, unicode_literals
-
 from os import linesep
 
 try:
@@ -88,7 +86,7 @@ class Table(ttk.Frame):
         return self.yscroll(delta)
 
     def on_mousewheel(self, event):
-        delta = event.delta // -30
+        delta = event.delta / -30
         return self.yscroll(delta)
 
     def on_select(self, event):
