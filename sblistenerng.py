@@ -10,16 +10,14 @@ except:
 import smartbus
 
 
-__updated__ = '2014.02.12_02:07:05'
+__updated__ = '2014-02-12-02-32-01'
 
 
 def version():
-    yld, hms = __updated__.split('_')
-    y, l, t = map(int, yld.split('.'))
-    h, m, s = map(int, hms.split(':'))
+    y, b, c, h, m, s = map(int, __updated__.split('-'))
     a = y - 2013
     d = h * 3600 + m * 60 + s
-    return '.'.join(map(str, (a, l, t, d)))
+    return '.'.join(map(str, (a, b, c, d)))
 
 
 __version__ = version()
