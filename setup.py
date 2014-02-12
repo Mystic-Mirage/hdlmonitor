@@ -1,10 +1,3 @@
-import distutils.util
-import glob
-import os
-import os.path
-import sys
-import zipfile
-
 from cx_Freeze import setup, Executable
 
 from sblistenerng import __version__ as version
