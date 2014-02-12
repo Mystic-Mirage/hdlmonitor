@@ -10,6 +10,21 @@ except:
 import smartbus
 
 
+__updated__ = '2014.02.12_02:07:05'
+
+
+def version():
+    yld, hms = __updated__.split('_')
+    y, l, t = map(int, yld.split('.'))
+    h, m, s = map(int, hms.split(':'))
+    a = y - 2013
+    d = h * 3600 + m * 60 + s
+    return '.'.join(map(str, (a, l, t, d)))
+
+
+__version__ = version()
+
+
 class Column(ttk.Frame):
 
     def __init__(self, top, text, width, yscrollcmd):
@@ -124,7 +139,7 @@ class ListenerGui(ttk.Frame):
     def __init__(self):
         ttk.Frame.__init__(self)
         self.master.resizable(0, 0)
-        self.master.title('SmartBus Listener NG')
+        self.master.title('SmartBus Listener NG ({0})'.format(__version__))
         try:
             self.master.iconbitmap('sblistenerng.ico')
         except:

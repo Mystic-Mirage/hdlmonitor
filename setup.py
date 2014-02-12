@@ -7,6 +7,8 @@ import zipfile
 
 from cx_Freeze import setup, Executable
 
+from sblistenerng import __version__ as version
+
 name = 'sblistenerng'
 
 icon = '%s.ico' % name
@@ -63,7 +65,7 @@ build_exe_options = {
 
 setup(
     name=name,
-    version='0.1',
+    version=version,
     description='SmartBus Listener NG',
     options={
         'build_exe': build_exe_options,
