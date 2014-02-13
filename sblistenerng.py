@@ -11,7 +11,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-02-13-21-19-59'
+__updated__ = '2014-02-13-21-45-38'
 
 
 def version():
@@ -51,7 +51,7 @@ class Column(ttk.Frame):
 
 class Table(ttk.Frame):
 
-    def __init__(self, top, columns, select_callback):
+    def __init__(self, top, columns, select_callback, autoscroll_var):
         ttk.Frame.__init__(self, top)
         self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
@@ -78,7 +78,7 @@ class Table(ttk.Frame):
         self.colors_num = len(self.colors)
         self.count = 0
 
-        self.autoscroll = True
+        self.autoscroll = autoscroll_var
 
     def append(self, row):
         color = self.colors[self.count % self.colors_num]
@@ -86,7 +86,7 @@ class Table(ttk.Frame):
             for column, value in zip(self.columns, subrow):
                 column.listbox.insert(tk.END, value)
                 column.listbox.itemconfig(tk.END, bg=color)
-                if self.autoscroll:
+                if self.autoscroll.get():
                     column.listbox.see(tk.END)
         self.count += 1
 
@@ -115,7 +115,6 @@ class Table(ttk.Frame):
         self.select_callback(selection)
 
     def scroll_set(self, lo, hi):
-        self.autoscroll = float(hi) > 0.95
         self.yview(tk.MOVETO, lo)
         self.scrollbar.set(lo, hi)
 
@@ -157,12 +156,22 @@ class ListenerGui(ttk.Frame):
         self.btn_stop = ttk.Button(buttonbar, text='Stop',
             command=self.stop, width=10)
 
-        self.btn_copy = ttk.Button(buttonbar,
+        buttongroup = ttk.Frame(buttonbar)
+        buttongroup.pack(expand=tk.TRUE, fill=tk.X, side=tk.RIGHT)
+
+        autoscroll_var = tk.IntVar()
+        autoscroll_var.set(tk.TRUE)
+
+        autoscroll_cb = ttk.Checkbutton(buttongroup, text='Autoscroll',
+            var=autoscroll_var)
+        autoscroll_cb.pack(padx=5, side=tk.LEFT)
+
+        self.btn_copy = ttk.Button(buttongroup,
             text='Copy to clipboard', command=self.copy,
             state=tk.DISABLED)
         self.btn_copy.pack(side=tk.RIGHT)
 
-        self.btn_clear = ttk.Button(buttonbar, text='Clear',
+        self.btn_clear = ttk.Button(buttongroup, text='Clear',
             command=self.clear, state=tk.DISABLED)
         self.btn_clear.pack(side=tk.RIGHT)
 
@@ -176,7 +185,8 @@ class ListenerGui(ttk.Frame):
             ('Data (hex)', 25),
             ('Data (ASCII)', 10),
         ),
-        self.select_callback)
+        self.select_callback,
+        autoscroll_var)
 
         self.listener = smartbus.Device(register=False)
         self.listener.receive_func = self.receive_func
