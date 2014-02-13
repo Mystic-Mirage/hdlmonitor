@@ -11,7 +11,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-02-13-21-17-32'
+__updated__ = '2014-02-13-21-19-59'
 
 
 def version():
@@ -148,21 +148,21 @@ class ListenerGui(ttk.Frame):
 
         self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
-        self.buttonbar = ttk.Frame(self)
-        self.buttonbar.pack(fill=tk.X, padx=5, pady=5)
+        buttonbar = ttk.Frame(self)
+        buttonbar.pack(fill=tk.X, padx=5, pady=5)
 
-        self.btn_start = ttk.Button(self.buttonbar, text='Start',
+        self.btn_start = ttk.Button(buttonbar, text='Start',
             command=self.start, width=10)
 
-        self.btn_stop = ttk.Button(self.buttonbar, text='Stop',
+        self.btn_stop = ttk.Button(buttonbar, text='Stop',
             command=self.stop, width=10)
 
-        self.btn_copy = ttk.Button(self.buttonbar,
+        self.btn_copy = ttk.Button(buttonbar,
             text='Copy to clipboard', command=self.copy,
             state=tk.DISABLED)
         self.btn_copy.pack(side=tk.RIGHT)
 
-        self.btn_clear = ttk.Button(self.buttonbar, text='Clear',
+        self.btn_clear = ttk.Button(buttonbar, text='Clear',
             command=self.clear, state=tk.DISABLED)
         self.btn_clear.pack(side=tk.RIGHT)
 
