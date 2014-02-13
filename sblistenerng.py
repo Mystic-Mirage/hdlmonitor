@@ -11,7 +11,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-02-13-21-45-38'
+__updated__ = '2014-02-14-00-56-00'
 
 
 def version():
@@ -27,7 +27,7 @@ __version__ = version()
 
 class Column(ttk.Frame):
 
-    def __init__(self, top, text, width):
+    def __init__(self, top, text, width, yscrollcmd):
         ttk.Frame.__init__(self, top)
         self.pack(expand=tk.TRUE, fill=tk.Y, side=tk.LEFT)
         self.label = ttk.Label(self, text=text, anchor=tk.CENTER,
@@ -35,7 +35,8 @@ class Column(ttk.Frame):
         self.label.pack(expand=tk.TRUE, fill=tk.BOTH)
         self.listbox = tk.Listbox(self, activestyle=tk.NONE,
             exportselection=tk.FALSE, font='Courier', height=24,
-            highlightthickness=0, selectmode=tk.EXTENDED, width=width)
+            highlightthickness=0, selectmode=tk.EXTENDED,
+            yscrollcommand=yscrollcmd, width=width)
         self.listbox.pack(fill=tk.X)
         self.listbox.bind('<Enter>', self.on_enter)
 
@@ -63,14 +64,13 @@ class Table(ttk.Frame):
         self.columns = []
 
         for text, width in columns:
-            column = Column(self, text=text, width=width)
+            column = Column(self, text=text, width=width,
+                yscrollcmd=self.scroll_set)
             column.listbox.bind('<MouseWheel>', self.on_mousewheel)
             column.listbox.bind('<Button-4>', self.on_button4)
             column.listbox.bind('<Button-5>', self.on_button5)
             column.listbox.bind('<<ListboxSelect>>', self.on_select)
             self.columns.append(column)
-
-        column.listbox.config(yscrollcommand=self.scroll_set)
 
         self.select_callback = select_callback
 
