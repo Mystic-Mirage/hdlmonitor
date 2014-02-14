@@ -1,5 +1,4 @@
 from os import linesep
-from os.path import abspath
 
 try:
     import Tkinter as tk
@@ -11,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-02-14-00-56-00'
+__updated__ = '2014-02-14-11-35-13'
 
 
 def version():
@@ -275,10 +274,6 @@ class ListenerGui(ttk.Frame):
 
 
 if __name__ == '__main__':
-    try:
-        abspath('').decode('ascii')
-    except:
-        raise Exception('Non-ASCII characters in application path')
     smartbus.init()
     ListenerGui()
     smartbus.quit()
