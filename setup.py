@@ -117,6 +117,7 @@ keep = [
     ['tk', 'ttk', 'scrollbar.tcl'],
     ['tk', 'ttk', 'ttk.tcl'],
     ['tk', 'ttk', 'utils.tcl'],
+    ['tk', 'ttk', 'wintheme.tcl'],
     ['tk', 'ttk', 'xptheme.tcl'],
 ]
 
