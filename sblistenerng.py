@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-02-14-11-35-13'
+__updated__ = '2014-02-14-23-35-00'
 
 
 def version():
@@ -136,11 +136,15 @@ class ListenerGui(ttk.Frame):
 
     def __init__(self):
         ttk.Frame.__init__(self)
+        style = ttk.Style()
+        if style.theme_use() == 'default':
+            style.theme_use('alt')
         self.master.resizable(0, 0)
         self.master.title('SmartBus Listener NG ({0})'.format(__version__))
         try:
             self.master.iconbitmap('sblistenerng.ico')
         except:
+            ttk.Style().theme_use('alt')
             icon = tk.PhotoImage(file='sblistenerng.gif')
             self.master.tk.call('wm', 'iconphoto', self.master._w, icon)
 
