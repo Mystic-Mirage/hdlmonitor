@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-02-14-23-35-00'
+__updated__ = '2014-03-01-23-36-13'
 
 
 def version():
@@ -194,23 +194,20 @@ class ListenerGui(ttk.Frame):
         self.listener = smartbus.Device(register=False)
         self.listener.receive_func = self.receive_func
 
+        self.packets = []
+        self.processing = True
+
+        self.append = self.append1
+
         self.start()
         self.mainloop()
 
-    def clear(self):
-        self.table.clear()
-        self.btn_clear.config(state=tk.DISABLED)
-        self.btn_copy.config(state=tk.DISABLED)
+    def append1(self, packet):
+        self.append_func(packet)
+        self.btn_clear.config(state=tk.NORMAL)
+        self.append = self.append_func
 
-    def copy(self):
-        rows = []
-        for row in self.table.selection_get():
-            rows.append(' '.join(row)[1:])
-        text = linesep.join(rows) + linesep
-        self.clipboard_clear()
-        self.clipboard_append(text)
-
-    def receive_func(self, packet):
+    def append_func(self, packet):
         packet_len = len(packet.data)
 
         data = []
@@ -258,7 +255,26 @@ class ListenerGui(ttk.Frame):
             ]]
 
         self.table.append(row)
-        self.btn_clear.config(state=tk.NORMAL)
+
+    def clear(self):
+        self.table.clear()
+        self.btn_clear.config(state=tk.DISABLED)
+        self.btn_copy.config(state=tk.DISABLED)
+        self.append = self.append1
+
+    def copy(self):
+        rows = []
+        for row in self.table.selection_get():
+            rows.append(' '.join(row)[1:])
+        text = linesep.join(rows) + linesep
+        self.clipboard_clear()
+        self.clipboard_append(text)
+
+    def receive_func(self, packet):
+        self.packets.append(packet)
+
+        if self.processing:
+            self.append(packet)
 
     def select_callback(self, selection):
         if selection:
