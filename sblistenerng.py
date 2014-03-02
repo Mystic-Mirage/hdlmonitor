@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-03-02-12-40-07'
+__updated__ = '2014-03-02-15-22-27'
 
 
 def version():
@@ -244,12 +244,12 @@ class ListenerGui(ttk.Frame):
                 ])
         else:
             row = [[
-                ' {0:-3d}'.format(packet.src_netid),
-                ' {0:-3d}'.format(packet.src_devid),
-                ' {0:-5d}'.format(packet.src_devtype),
-                ' {0:4s}'.format(packet.opcode_hex[2:]),
-                ' {0:-3d}'.format(packet.netid),
-                ' {0:-3d}'.format(packet.devid),
+                format(packet.src_netid, '>4d'),
+                format(packet.src_devid, '>4d'),
+                format(packet.src_devtype, '>6d'),
+                format(packet.opcode_hex0, '>5s'),
+                format(packet.netid, '>4d'),
+                format(packet.devid, '>4d'),
                 '',
                 '',
             ]]
