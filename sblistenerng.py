@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-03-01-23-36-13'
+__updated__ = '2014-03-02-03-00-21'
 
 
 def version():
@@ -197,17 +197,17 @@ class ListenerGui(ttk.Frame):
         self.packets = []
         self.processing = True
 
-        self.append = self.append1
+        self.append = self.append_1
 
         self.start()
         self.mainloop()
 
-    def append1(self, packet):
-        self.append_func(packet)
+    def append_1(self, packet):
         self.btn_clear.config(state=tk.NORMAL)
-        self.append = self.append_func
+        self.append = self.append_n
+        self.append(packet)
 
-    def append_func(self, packet):
+    def append_n(self, packet):
         packet_len = len(packet.data)
 
         data = []
@@ -260,7 +260,7 @@ class ListenerGui(ttk.Frame):
         self.table.clear()
         self.btn_clear.config(state=tk.DISABLED)
         self.btn_copy.config(state=tk.DISABLED)
-        self.append = self.append1
+        self.append = self.append_1
 
     def copy(self):
         rows = []
