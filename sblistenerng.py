@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-03-02-15-22-27'
+__updated__ = '2014-03-02-20-00-59'
 
 
 def version():
@@ -257,6 +257,7 @@ class ListenerGui(ttk.Frame):
         self.table.append(row)
 
     def clear(self):
+        self.packets = []
         self.table.clear()
         self.btn_clear.config(state=tk.DISABLED)
         self.btn_copy.config(state=tk.DISABLED)
