@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-03-02-20-00-59'
+__updated__ = '2014-03-09-19-01-25'
 
 
 def version():
@@ -22,6 +22,12 @@ def version():
 
 
 __version__ = version()
+
+
+def color_generator(colors):
+    while True:
+        for color in colors:
+            yield color
 
 
 class Column(ttk.Frame):
@@ -73,21 +79,19 @@ class Table(ttk.Frame):
 
         self.select_callback = select_callback
 
-        self.colors = ('white', 'white smoke')
-        self.colors_num = len(self.colors)
-        self.count = 0
+        colors = ('white', 'white smoke')
+        self.color = color_generator(colors)
 
         self.autoscroll = autoscroll_var
 
     def append(self, row):
-        color = self.colors[self.count % self.colors_num]
+        color = next(self.color)
         for subrow in row:
             for column, value in zip(self.columns, subrow):
                 column.listbox.insert(tk.END, value)
                 column.listbox.itemconfig(tk.END, bg=color)
                 if self.autoscroll.get():
                     column.listbox.see(tk.END)
-        self.count += 1
 
     def clear(self):
         for column in self.columns:
