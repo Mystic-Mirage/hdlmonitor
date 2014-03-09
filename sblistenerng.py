@@ -10,7 +10,7 @@ except:
 import smartbus
 
 
-__updated__ = '2014-03-09-19-01-25'
+__updated__ = '2014-03-10-00-10-10'
 
 
 def version():
@@ -32,7 +32,7 @@ def color_generator(colors):
 
 class Column(ttk.Frame):
 
-    def __init__(self, top, text, width, yscrollcmd):
+    def __init__(self, top, text, width):
         ttk.Frame.__init__(self, top)
         self.pack(expand=tk.TRUE, fill=tk.Y, side=tk.LEFT)
         self.label = ttk.Label(self, text=text, anchor=tk.CENTER,
@@ -40,8 +40,7 @@ class Column(ttk.Frame):
         self.label.pack(expand=tk.TRUE, fill=tk.BOTH)
         self.listbox = tk.Listbox(self, activestyle=tk.NONE,
             exportselection=tk.FALSE, font='Courier', height=24,
-            highlightthickness=0, selectmode=tk.EXTENDED,
-            yscrollcommand=yscrollcmd, width=width)
+            highlightthickness=0, selectmode=tk.EXTENDED, width=width)
         self.listbox.pack(fill=tk.X)
         self.listbox.bind('<Enter>', self.on_enter)
 
@@ -54,6 +53,10 @@ class Column(ttk.Frame):
             selection.append(self.listbox.get(int(i)))
         return selection
 
+    def yscroll(self, lo, _):
+        self.listbox.yview(tk.MOVETO, lo)
+        return 'break'
+
 
 class Table(ttk.Frame):
 
@@ -61,7 +64,7 @@ class Table(ttk.Frame):
         ttk.Frame.__init__(self, top)
         self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
-        self.scrollbar = ttk.Scrollbar(self, command=self.yview)
+        self.scrollbar = ttk.Scrollbar(self)
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         self.scrollbar.bind('<Button-4>', self.on_button4)
         self.scrollbar.bind('<Button-5>', self.on_button5)
@@ -69,13 +72,17 @@ class Table(ttk.Frame):
         self.columns = []
 
         for text, width in columns:
-            column = Column(self, text=text, width=width,
-                yscrollcmd=self.scroll_set)
+            column = Column(self, text=text, width=width)
             column.listbox.bind('<MouseWheel>', self.on_mousewheel)
             column.listbox.bind('<Button-4>', self.on_button4)
             column.listbox.bind('<Button-5>', self.on_button5)
             column.listbox.bind('<<ListboxSelect>>', self.on_select)
             self.columns.append(column)
+
+        self.columns[0].listbox.config(yscrollcommand=self.scrollbar.set)
+        for col1, col2 in zip(self.columns[:-1], self.columns[1:]):
+            col2.listbox.config(yscrollcommand=col1.yscroll)
+        self.scrollbar.config(command=column.listbox.yview)
 
         self.select_callback = select_callback
 
@@ -115,11 +122,8 @@ class Table(ttk.Frame):
             column.listbox.selection_clear(0, tk.END)
             if selection:
                 column.listbox.selection_set(selection[0], selection[-1])
+        column.listbox.focus_set()
         self.select_callback(selection)
-
-    def scroll_set(self, lo, hi):
-        self.yview(tk.MOVETO, lo)
-        self.scrollbar.set(lo, hi)
 
     def selection_get(self):
         selection = []
@@ -128,12 +132,9 @@ class Table(ttk.Frame):
         return zip(*selection)
 
     def yscroll(self, delta):
-        self.yview(tk.SCROLL, delta, tk.UNITS)
-        return 'break'
-
-    def yview(self, *args):
         for column in self.columns:
-            column.listbox.yview(*args)
+            column.listbox.yview(tk.SCROLL, delta, tk.UNITS)
+        return 'break'
 
 
 class ListenerGui(ttk.Frame):
