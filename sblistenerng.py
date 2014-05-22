@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-23-11-27-54'
+__updated__ = '2014-05-25-15-52-48'
 
 
 def version():
@@ -138,9 +138,123 @@ class Table(ttk.Frame):
         return 'break'
 
 
+class Filter(ttk.Frame):
+
+    list = []
+    conditions_list = []
+
+    def __init__(self, top, filter_entries):
+        ttk.Frame.__init__(self, top)
+        self.pack(fill=tk.X, expand=tk.TRUE, padx=5, pady=0)
+
+        self.error = tk.StringVar()
+        lbl_error = ttk.Label(self, anchor=tk.CENTER, justify=tk.CENTER,
+            textvariable=self.error, width=21)
+        lbl_error.pack(side=tk.LEFT)
+
+        self.conditions = []
+        for key, width, base, minimum, maximum, fmt in filter_entries:
+            entry = ttk.Entry(self, width=width)
+            entry.pack(side=tk.LEFT)
+            self.conditions.append((key, (entry, base, minimum, maximum, fmt)))
+
+        self.btn_apply = ttk.Button(self, text='Remove', command=self.delete,
+            width=6)
+        self.btn_apply.pack(side=tk.LEFT)
+        self.append(self)
+
+    @classmethod
+    def append(cls, instance):
+        cls.list.append(instance)
+
+    @classmethod
+    def remove(cls, instance):
+        cls.list.remove(instance)
+
+    @classmethod
+    def filter(cls, packet):
+        if cls.conditions_list:
+            for conditions in cls.conditions_list:
+                if cls.check(packet, conditions):
+                    return True
+            return False
+        return True
+
+    @classmethod
+    def validate(cls):
+        conditions_list = []
+        not_valid_list = []
+        for f in cls.list:
+            nv = f.valid()
+            if nv:
+                not_valid_list.append(nv)
+            else:
+                f_conditions = []
+                for condition in f.conditions:
+                    key, (entry, base, _, _, _) = condition
+                    _value = entry.get()
+                    try:
+                        value = int(_value, base)
+                    except ValueError:
+                        value = -1
+                    f_conditions.append((key, value))
+                conditions_list.append(f_conditions)
+        if not_valid_list:
+            not_valid_list[0][0].selection_range(0, tk.END)
+            not_valid_list[0][0].focus()
+        else:
+            cls.conditions_list = conditions_list
+        if not cls.list and hasattr(cls, 'empty_callback'):
+            cls.empty_callback()
+        return not_valid_list
+
+    @staticmethod
+    def check(packet, conditions):
+        for key, value in conditions:
+            p_value = getattr(packet, key)
+            if value not in (-1, p_value):
+                return False
+        return True
+
+    def delete(self):
+        self.pack_forget()
+        self.remove(self)
+
+    def valid(self):
+        not_valid = []
+        filled = 0
+        first = None
+        for _, value in self.conditions:
+            entry, base, minimum, maximum, fmt = value
+            if not first:
+                first = entry
+            try:
+                e_value = entry.get().strip()
+                if e_value:
+                    i_value = int(e_value, base)
+                    if not minimum <= i_value <= maximum:
+                        raise ValueError('not in range')
+                    filled += 1
+                    e_value = format(i_value, fmt)
+                entry.delete(0, tk.END)
+                entry.insert(0, e_value)
+            except ValueError:
+                not_valid.append(entry)
+                break
+        if not filled:
+            not_valid.append(first)
+        if not_valid:
+            self.error.set('Error!')
+            return not_valid
+        else:
+            self.error.set('')
+
+
 class ListenerGui(ttk.Frame):
 
     def __init__(self):
+        smartbus.init(no_sender=True)
+
         ttk.Frame.__init__(self)
         style = ttk.Style()
         if style.theme_use() == 'default':
@@ -198,6 +312,22 @@ class ListenerGui(ttk.Frame):
         self.select_callback,
         autoscroll_var)
 
+        self.filters = ttk.Frame(self)
+        self.filters.pack(expand=tk.TRUE, fill=tk.X)
+
+        filterbuttons = ttk.Frame(self.filters)
+        filterbuttons.pack(expand=tk.TRUE, fill=tk.X, padx=5, pady=5)
+
+        Filter.empty_callback = self.empty_filters
+
+        btn_addfilter = ttk.Button(filterbuttons, text='Add filter',
+            command=self.add_filter)
+        btn_addfilter.pack(side=tk.LEFT)
+
+        self.btn_applyfilter = ttk.Button(filterbuttons, text='Apply',
+            command=self.apply_filters, state=tk.DISABLED)
+        self.btn_applyfilter.pack(side=tk.LEFT)
+
         self.listener = smartbus.Device(register=False)
         self.listener.receive_func = self.receive_func
 
@@ -209,16 +339,43 @@ class ListenerGui(ttk.Frame):
         self.start()
         self.mainloop()
 
-    def append_1(self, packet):
+    def __del__(self):
+        smartbus.quit()
+
+    def add_filter(self):
+        Filter(self.filters, (
+            ('src_netid', 8, 10, 0, 255, 'd'),
+            ('src_devid', 8, 10, 0, 255, 'd'),
+            ('src_devtype', 10, 10, 0, 65535, 'd'),
+            ('opcode', 9, 16, 0, 0xffff, '04x'),
+            ('netid', 9, 10, 0, 255, 'd'),
+            ('devid', 10, 10, 0, 255, 'd'),
+            ),
+        )
+        self.btn_applyfilter.config(state=tk.NORMAL)
+
+    def empty_filters(self):
+        self.btn_applyfilter.config(state=tk.DISABLED)
+
+    def apply_filters(self):
+        nv = Filter.validate()
+        if not nv:
+            smartbus.pause()
+            self.table.clear()
+            for now, packet in self.packets:
+                if Filter.filter(packet):
+                    self.append_n(now, packet)
+            smartbus.resume()
+
+    def append_1(self, now, packet):
         self.btn_clear.config(state=tk.NORMAL)
         self.append = self.append_n
-        self.append(packet)
+        self.append(now, packet)
 
-    def append_n(self, packet):
+    def append_n(self, now, packet):
         packet_len = len(packet.data)
 
         data = []
-        now = datetime.now().time()
 
         for d in range(0, packet_len, 8):
             data_hex = []
@@ -283,10 +440,11 @@ class ListenerGui(ttk.Frame):
         self.clipboard_append(text)
 
     def receive_func(self, packet):
-        self.packets.append(packet)
+        now = datetime.now().time()
+        self.packets.append((now, packet))
 
-        if self.processing:
-            self.append(packet)
+        if self.processing and Filter.filter(packet):
+            self.append(now, packet)
 
     def select_callback(self, selection):
         if selection:
@@ -306,6 +464,4 @@ class ListenerGui(ttk.Frame):
 
 
 if __name__ == '__main__':
-    smartbus.init()
     ListenerGui()
-    smartbus.quit()
