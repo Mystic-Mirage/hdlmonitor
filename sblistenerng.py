@@ -3,14 +3,14 @@ from os import linesep
 try:
     import Tkinter as tk
     import ttk
-except:
+except ImportError:
     import tkinter as tk
     from tkinter import ttk
 
 import smartbus
 
 
-__updated__ = '2014-04-09-20-52-04'
+__updated__ = '2014-05-23-10-06-08'
 
 
 def version():
@@ -148,7 +148,7 @@ class ListenerGui(ttk.Frame):
         self.master.title('SmartBus Listener NG ({0})'.format(__version__))
         try:
             self.master.iconbitmap('sblistenerng.ico')
-        except:
+        except tk.TclError:
             ttk.Style().theme_use('alt')
             icon = tk.PhotoImage(file='sblistenerng.gif')
             self.master.tk.call('wm', 'iconphoto', self.master._w, icon)
