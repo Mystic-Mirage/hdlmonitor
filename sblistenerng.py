@@ -1,3 +1,4 @@
+from datetime import datetime
 from os import linesep
 
 try:
@@ -10,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-23-10-06-08'
+__updated__ = '2014-05-23-11-27-54'
 
 
 def version():
@@ -184,6 +185,7 @@ class ListenerGui(ttk.Frame):
         self.btn_clear.pack(side=tk.RIGHT)
 
         self.table = Table(self, (
+            ('Timestamp', 17),
             ('Source\nSubnetID', 5),
             ('Source\nDeviceID', 5),
             ('Source\nDevice Type', 7),
@@ -216,6 +218,7 @@ class ListenerGui(ttk.Frame):
         packet_len = len(packet.data)
 
         data = []
+        now = datetime.now().time()
 
         for d in range(0, packet_len, 8):
             data_hex = []
@@ -227,6 +230,7 @@ class ListenerGui(ttk.Frame):
 
         if data:
             row = [[
+                ' {0:15s}'.format(str(now)),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
@@ -238,6 +242,7 @@ class ListenerGui(ttk.Frame):
             ]]
             for d in data[1:]:
                 row.append([
+                    '                ',
                     '    ',
                     '    ',
                     '      ',
@@ -249,6 +254,7 @@ class ListenerGui(ttk.Frame):
                 ])
         else:
             row = [[
+                ' {0:15s}'.format(str(now)),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
