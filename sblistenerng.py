@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-17-27-33'
+__updated__ = '2014-05-25-20-09-17'
 
 
 def version():
@@ -145,23 +145,29 @@ class Filter(ttk.Frame):
     list = []
     conditions_list = []
 
-    def __init__(self, top, filter_entries):
+    def __init__(self, top, filter_entries, indent):
         ttk.Frame.__init__(self, top)
         self.pack(fill=tk.X, expand=tk.TRUE, padx=5, pady=0)
 
         self.error = tk.StringVar()
-        lbl_error = ttk.Label(self, anchor=tk.CENTER, justify=tk.CENTER,
-            textvariable=self.error, width=21)
-        lbl_error.pack(side=tk.LEFT)
+        frm_error = tk.Frame(self, width=indent)
+        frm_error.pack_propagate(tk.FALSE)
+        frm_error.pack(side=tk.LEFT, fill=tk.Y)
+
+        lbl_error = ttk.Label(frm_error, anchor=tk.CENTER, justify=tk.CENTER,
+            textvariable=self.error)
+        lbl_error.pack(side=tk.LEFT, expand=tk.TRUE)
 
         self.conditions = []
         for key, width, base, minimum, maximum, fmt in filter_entries:
-            entry = ttk.Entry(self, width=width)
+            frame = tk.Frame(self, width=width)
+            frame.pack_propagate(tk.FALSE)
+            frame.pack(side=tk.LEFT, fill=tk.Y)
+            entry = ttk.Entry(frame)
             entry.pack(side=tk.LEFT)
             self.conditions.append((key, (entry, base, minimum, maximum, fmt)))
 
-        self.btn_apply = ttk.Button(self, text='Remove', command=self.delete,
-            width=6)
+        self.btn_apply = ttk.Button(self, text='Remove', command=self.delete)
         self.btn_apply.pack(side=tk.LEFT)
         self.append(self)
 
@@ -346,15 +352,16 @@ class ListenerGui(ttk.Frame):
         smartbus.quit()
 
     def add_filter(self):
+        columns = [column.label.winfo_width() for column in self.table.columns]
         Filter(self.filters, (
-            ('src_netid', 8, 10, 0, 255, 'd'),
-            ('src_devid', 8, 10, 0, 255, 'd'),
-            ('src_devtype', 10, 10, 0, 65535, 'd'),
-            ('opcode', 9, 16, 0, 0xffff, '04x'),
-            ('netid', 9, 10, 0, 255, 'd'),
-            ('devid', 10, 10, 0, 255, 'd'),
+            ('src_netid', columns[1], 10, 0, 255, 'd'),
+            ('src_devid', columns[2], 10, 0, 255, 'd'),
+            ('src_devtype', columns[3], 10, 0, 65535, 'd'),
+            ('opcode', columns[4], 16, 0, 0xffff, '04x'),
+            ('netid', columns[5], 10, 0, 255, 'd'),
+            ('devid', columns[6], 10, 0, 255, 'd'),
             ),
-        )
+        columns[0])
         self.btn_applyfilter.config(state=tk.NORMAL)
 
     def empty_filters(self):
