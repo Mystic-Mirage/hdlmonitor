@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-20-20-38'
+__updated__ = '2014-05-25-20-27-37'
 
 
 def version():
@@ -89,8 +89,8 @@ class Table(ttk.Frame):
 
         self.select_callback = select_callback
 
-        colors = ('white', 'white smoke')
-        self.color = color_generator(colors)
+        self.colors = ('white', 'white smoke')
+        self.color = color_generator(self.colors)
 
         self.autoscroll = autoscroll_var
 
@@ -104,6 +104,7 @@ class Table(ttk.Frame):
                     column.listbox.see(tk.END)
 
     def clear(self):
+        self.color = color_generator(self.colors)
         for column in self.columns:
             column.listbox.delete(0, tk.END)
 
