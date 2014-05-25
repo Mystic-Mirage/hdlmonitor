@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-20-27-37'
+__updated__ = '2014-05-25-22-30-56'
 
 
 def version():
@@ -311,7 +311,7 @@ class ListenerGui(ttk.Frame):
         self.btn_clear.pack(side=tk.RIGHT)
 
         self.table = Table(self, (
-            ('Timestamp', 17),
+            ('Timestamp', 14),
             ('Source\nSubnetID', 5),
             ('Source\nDeviceID', 5),
             ('Source\nDevice Type', 7),
@@ -401,7 +401,7 @@ class ListenerGui(ttk.Frame):
 
         if data:
             row = [[
-                ' {0:15s}'.format(str(now)),
+                ' {0:12s}'.format(str(now)),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
@@ -413,7 +413,7 @@ class ListenerGui(ttk.Frame):
             ]]
             for d in data[1:]:
                 row.append([
-                    '                ',
+                    '             ',
                     '    ',
                     '    ',
                     '      ',
@@ -425,7 +425,7 @@ class ListenerGui(ttk.Frame):
                 ])
         else:
             row = [[
-                ' {0:15s}'.format(str(now)),
+                ' {0:12s}'.format(str(now)),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
@@ -454,7 +454,10 @@ class ListenerGui(ttk.Frame):
         self.clipboard_append(text)
 
     def receive_func(self, packet):
-        now = datetime.now().time()
+        _now = datetime.now().time()
+        now = '{0.hour:02d}:{0.minute:02d}:{0.second:02d}.{1:03d}'.format(
+            _now, _now.microsecond / 1000
+        )
         self.packets.append((now, packet))
 
         if self.processing and Filter.filter(packet):
