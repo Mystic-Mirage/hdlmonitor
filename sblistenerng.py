@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-15-52-48'
+__updated__ = '2014-05-25-17-27-33'
 
 
 def version():
@@ -61,7 +61,8 @@ class Column(ttk.Frame):
 
 class Table(ttk.Frame):
 
-    def __init__(self, top, columns, select_callback, autoscroll_var):
+    def __init__(self, top, columns, select_callback, autoscroll_var,
+        copy_callback):
         ttk.Frame.__init__(self, top)
         self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
@@ -78,6 +79,7 @@ class Table(ttk.Frame):
             column.listbox.bind('<Button-4>', self.on_button4)
             column.listbox.bind('<Button-5>', self.on_button5)
             column.listbox.bind('<<ListboxSelect>>', self.on_select)
+            column.listbox.bind('<<Copy>>', copy_callback)
             self.columns.append(column)
 
         self.columns[0].listbox.config(yscrollcommand=self.scrollbar.set)
@@ -310,7 +312,8 @@ class ListenerGui(ttk.Frame):
             ('Data (ASCII)', 10),
         ),
         self.select_callback,
-        autoscroll_var)
+        autoscroll_var,
+        self.copy)
 
         self.filters = ttk.Frame(self)
         self.filters.pack(expand=tk.TRUE, fill=tk.X)
@@ -431,7 +434,7 @@ class ListenerGui(ttk.Frame):
         self.btn_copy.config(state=tk.DISABLED)
         self.append = self.append_1
 
-    def copy(self):
+    def copy(self, *args):
         rows = []
         for row in self.table.selection_get():
             rows.append(' '.join(row)[1:])
