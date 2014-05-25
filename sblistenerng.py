@@ -11,14 +11,14 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-22-30-56'
+__updated__ = '2014-05-25-22-35-38'
 
 
 def version():
     b1, b2, c, d1, d2, d3 = map(int, __updated__.split('-'))
     a = 1
     b = b1 - 2014 + b2
-    d = d1 * 3600 + d2 * 60 + d3
+    d = d1 * 2730 + d2 * 45 + d3
     return '.'.join(map(str, (a, b, c, d)))
 
 
