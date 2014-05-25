@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-20-09-17'
+__updated__ = '2014-05-25-20-20-38'
 
 
 def version():
@@ -178,6 +178,9 @@ class Filter(ttk.Frame):
     @classmethod
     def remove(cls, instance):
         cls.list.remove(instance)
+        if (not any((cls.conditions_list, cls.list)) and
+            hasattr(cls, 'empty_callback')):
+            cls.empty_callback()
 
     @classmethod
     def filter(cls, packet):
