@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-26-22-46-40'
+__updated__ = '2014-05-27-00-22-42'
 
 
 def version():
@@ -160,13 +160,18 @@ class Filter(ttk.Frame):
         lbl_error.pack(side=tk.LEFT, expand=tk.TRUE)
 
         self.conditions = []
-        for key, width, base, minimum, maximum, fmt in filter_entries:
+        for key, width, base, t_values, fmt in filter_entries:
             frame = tk.Frame(self, width=width)
             frame.pack_propagate(tk.FALSE)
             frame.pack(side=tk.LEFT, fill=tk.Y)
-            entry = ttk.Entry(frame)
-            entry.pack(side=tk.LEFT)
-            self.conditions.append((key, (entry, base, minimum, maximum, fmt)))
+            if base is str:
+                widget = ttk.Combobox(frame)
+                widget['values'] = t_values
+                widget.pack(side=tk.LEFT, expand=tk.TRUE)
+            else:
+                widget = ttk.Entry(frame)
+                widget.pack(side=tk.LEFT)
+            self.conditions.append((key, (widget, base, t_values, fmt)))
 
         self.btn_apply = ttk.Button(self, text='Remove', command=self.delete)
         self.btn_apply.pack(side=tk.LEFT)
@@ -203,12 +208,15 @@ class Filter(ttk.Frame):
             else:
                 f_conditions = []
                 for condition in f.conditions:
-                    key, (entry, base, _, _, _) = condition
+                    key, (entry, base, _, _) = condition
                     _value = entry.get()
-                    try:
-                        value = int(_value, base)
-                    except ValueError:
-                        value = -1
+                    if base is str:
+                        value = _value if _value else -1
+                    else:
+                        try:
+                            value = int(_value, base)
+                        except ValueError:
+                            value = -1
                     f_conditions.append((key, value))
                 conditions_list.append(f_conditions)
         if not_valid_list:
@@ -222,6 +230,7 @@ class Filter(ttk.Frame):
 
     @staticmethod
     def check(packet, conditions):
+        print(conditions)
         for key, value in conditions:
             p_value = getattr(packet, key)
             if value not in (-1, p_value):
@@ -237,17 +246,21 @@ class Filter(ttk.Frame):
         filled = 0
         first = None
         for _, value in self.conditions:
-            entry, base, minimum, maximum, fmt = value
-            if not first:
+            entry, base, t_values, fmt = value
+            if not first and base is not str:
                 first = entry
             try:
                 e_value = entry.get().strip()
                 if e_value:
-                    i_value = int(e_value, base)
-                    if not minimum <= i_value <= maximum:
-                        raise ValueError('not in range')
+                    if base is str:
+                        e_value = format(e_value[:10], fmt)
+                    else:
+                        minimum, maximum = t_values
+                        i_value = int(e_value, base)
+                        if not minimum <= i_value <= maximum:
+                            raise ValueError('not in range')
+                        e_value = format(i_value, fmt)
                     filled += 1
-                    e_value = format(i_value, fmt)
                 entry.delete(0, tk.END)
                 entry.insert(0, e_value)
             except ValueError:
@@ -359,14 +372,19 @@ class ListenerGui(ttk.Frame):
     def add_filter(self):
         columns = [column.label.winfo_width() for column in self.table.columns]
         Filter(self.filters, (
-            ('src_netid', columns[2], 10, 0, 255, 'd'),
-            ('src_devid', columns[3], 10, 0, 255, 'd'),
-            ('src_devtype', columns[4], 10, 0, 65535, 'd'),
-            ('opcode', columns[5], 16, 0, 0xffff, '04x'),
-            ('netid', columns[6], 10, 0, 255, 'd'),
-            ('devid', columns[7], 10, 0, 255, 'd'),
+            ('header', columns[1], str, [x.format() for x in (
+                '',
+                smartbus.HDLMIRACLE,
+                smartbus.SMARTCLOUD,
+            )], '10s'),
+            ('src_netid', columns[2], 10, (0, 255), 'd'),
+            ('src_devid', columns[3], 10, (0, 255), 'd'),
+            ('src_devtype', columns[4], 10, (0, 65535), 'd'),
+            ('opcode', columns[5], 16, (0, 0xffff), '04x'),
+            ('netid', columns[6], 10, (0, 255), 'd'),
+            ('devid', columns[7], 10, (0, 255), 'd'),
             ),
-        columns[0] + columns[1])
+        columns[0])
         self.btn_applyfilter.config(state=tk.NORMAL)
 
     def empty_filters(self):
