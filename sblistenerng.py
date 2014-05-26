@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-25-22-35-38'
+__updated__ = '2014-05-26-22-46-40'
 
 
 def version():
@@ -312,6 +312,7 @@ class ListenerGui(ttk.Frame):
 
         self.table = Table(self, (
             ('Timestamp', 14),
+            ('Header', 12),
             ('Source\nSubnetID', 5),
             ('Source\nDeviceID', 5),
             ('Source\nDevice Type', 7),
@@ -358,14 +359,14 @@ class ListenerGui(ttk.Frame):
     def add_filter(self):
         columns = [column.label.winfo_width() for column in self.table.columns]
         Filter(self.filters, (
-            ('src_netid', columns[1], 10, 0, 255, 'd'),
-            ('src_devid', columns[2], 10, 0, 255, 'd'),
-            ('src_devtype', columns[3], 10, 0, 65535, 'd'),
-            ('opcode', columns[4], 16, 0, 0xffff, '04x'),
-            ('netid', columns[5], 10, 0, 255, 'd'),
-            ('devid', columns[6], 10, 0, 255, 'd'),
+            ('src_netid', columns[2], 10, 0, 255, 'd'),
+            ('src_devid', columns[3], 10, 0, 255, 'd'),
+            ('src_devtype', columns[4], 10, 0, 65535, 'd'),
+            ('opcode', columns[5], 16, 0, 0xffff, '04x'),
+            ('netid', columns[6], 10, 0, 255, 'd'),
+            ('devid', columns[7], 10, 0, 255, 'd'),
             ),
-        columns[0])
+        columns[0] + columns[1])
         self.btn_applyfilter.config(state=tk.NORMAL)
 
     def empty_filters(self):
@@ -402,6 +403,7 @@ class ListenerGui(ttk.Frame):
         if data:
             row = [[
                 ' {0:12s}'.format(str(now)),
+                ' {0:10s}'.format(packet.header),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
@@ -414,6 +416,7 @@ class ListenerGui(ttk.Frame):
             for d in data[1:]:
                 row.append([
                     '             ',
+                    '           ',
                     '    ',
                     '    ',
                     '      ',
@@ -426,6 +429,7 @@ class ListenerGui(ttk.Frame):
         else:
             row = [[
                 ' {0:12s}'.format(str(now)),
+                ' {0:10s}'.format(packet.header),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
