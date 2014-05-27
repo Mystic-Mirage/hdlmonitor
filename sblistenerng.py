@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-27-10-28-29'
+__updated__ = '2014-05-27-12-31-46'
 
 
 def version():
@@ -477,7 +477,7 @@ class ListenerGui(ttk.Frame):
     def receive_func(self, packet):
         _now = datetime.now().time()
         now = '{0.hour:02d}:{0.minute:02d}:{0.second:02d}.{1:03d}'.format(
-            _now, int(_now.microsecond / 1000)
+            _now, _now.microsecond // 1000
         )
         self.packets.append((now, packet))
 
