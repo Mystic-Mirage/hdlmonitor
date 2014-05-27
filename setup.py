@@ -114,6 +114,7 @@ keep = [
     ['tk', 'listbox.tcl'],
     ['tk', 'tk.tcl'],
     ['tk', 'ttk', 'button.tcl'],
+    ['tk', 'ttk', 'combobox.tcl'],
     ['tk', 'ttk', 'entry.tcl'],
     ['tk', 'ttk', 'scrollbar.tcl'],
     ['tk', 'ttk', 'ttk.tcl'],
