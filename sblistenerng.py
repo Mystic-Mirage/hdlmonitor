@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-27-00-22-42'
+__updated__ = '2014-05-27-10-28-29'
 
 
 def version():
@@ -230,9 +230,10 @@ class Filter(ttk.Frame):
 
     @staticmethod
     def check(packet, conditions):
-        print(conditions)
         for key, value in conditions:
             p_value = getattr(packet, key)
+            if type(p_value) is bytearray:
+                p_value = p_value.decode()
             if value not in (-1, p_value):
                 return False
         return True
@@ -371,12 +372,10 @@ class ListenerGui(ttk.Frame):
 
     def add_filter(self):
         columns = [column.label.winfo_width() for column in self.table.columns]
+        combo_values = ['']
+        combo_values.extend(x.decode() for x in smartbus.HEADERS)
         Filter(self.filters, (
-            ('header', columns[1], str, [x.format() for x in (
-                '',
-                smartbus.HDLMIRACLE,
-                smartbus.SMARTCLOUD,
-            )], '10s'),
+            ('header', columns[1], str, combo_values, '10s'),
             ('src_netid', columns[2], 10, (0, 255), 'd'),
             ('src_devid', columns[3], 10, (0, 255), 'd'),
             ('src_devtype', columns[4], 10, (0, 65535), 'd'),
@@ -421,7 +420,7 @@ class ListenerGui(ttk.Frame):
         if data:
             row = [[
                 ' {0:12s}'.format(str(now)),
-                ' {0:10s}'.format(packet.header),
+                ' {0:10s}'.format(packet.header.decode()),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
@@ -447,7 +446,7 @@ class ListenerGui(ttk.Frame):
         else:
             row = [[
                 ' {0:12s}'.format(str(now)),
-                ' {0:10s}'.format(packet.header),
+                ' {0:10s}'.format(packet.header.decode()),
                 format(packet.src_netid, '>4d'),
                 format(packet.src_devid, '>4d'),
                 format(packet.src_devtype, '>6d'),
@@ -478,7 +477,7 @@ class ListenerGui(ttk.Frame):
     def receive_func(self, packet):
         _now = datetime.now().time()
         now = '{0.hour:02d}:{0.minute:02d}:{0.second:02d}.{1:03d}'.format(
-            _now, _now.microsecond / 1000
+            _now, int(_now.microsecond / 1000)
         )
         self.packets.append((now, packet))
 
