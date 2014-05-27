@@ -11,7 +11,7 @@ except ImportError:
 import smartbus
 
 
-__updated__ = '2014-05-27-12-31-46'
+__updated__ = '2014-05-27-13-47-23'
 
 
 def version():
@@ -22,6 +22,7 @@ def version():
     return '.'.join(map(str, (a, b, c, d)))
 
 
+__copyright__ = 'Copyright 2012-2014, Cyber Genie'
 __version__ = version()
 
 
@@ -286,7 +287,8 @@ class ListenerGui(ttk.Frame):
         if style.theme_use() == 'default':
             style.theme_use('alt')
         self.master.resizable(tk.FALSE, tk.FALSE)
-        self.master.title('SmartBus Listener NG ({0})'.format(__version__))
+        self.master.title('SmartBus Listener NG ({0}) - {1}'.format(
+            __version__, __copyright__))
         try:
             self.master.iconbitmap('sblistenerng.ico')
         except tk.TclError:
