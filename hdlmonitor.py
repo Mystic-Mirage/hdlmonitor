@@ -1,4 +1,5 @@
 from datetime import datetime
+from itertools import cycle
 from os import linesep
 
 try:
@@ -8,41 +9,26 @@ except ImportError:
     import tkinter as tk
     from tkinter import ttk
 
-import smartbus
+import hdlmiracle
 
 
-__updated__ = '2014-05-27-13-47-23'
+__version__ = '0.3.2'
 
-
-def version():
-    b1, b2, c, d1, d2, d3 = map(int, __updated__.split('-'))
-    a = 1
-    b = b1 - 2014 + b2
-    d = d1 * 2730 + d2 * 45 + d3
-    return '.'.join(map(str, (a, b, c, d)))
-
-
-__copyright__ = 'Copyright 2012-2014, Cyber Genie'
-__version__ = version()
-
-
-def color_generator(colors):
-    while True:
-        for color in colors:
-            yield color
+TITLE = 'HDL Buspro Monitor ({0})'.format(__version__)
 
 
 class Column(ttk.Frame):
-
     def __init__(self, top, text, width):
         ttk.Frame.__init__(self, top)
         self.pack(expand=tk.TRUE, fill=tk.Y, side=tk.LEFT)
         self.label = ttk.Label(self, text=text, anchor=tk.CENTER,
-            justify=tk.CENTER, relief=tk.GROOVE, padding=5)
+                               justify=tk.CENTER, relief=tk.GROOVE, padding=5)
         self.label.pack(expand=tk.TRUE, fill=tk.BOTH)
         self.listbox = tk.Listbox(self, activestyle=tk.NONE,
-            exportselection=tk.FALSE, font='Courier', height=24,
-            highlightthickness=0, selectmode=tk.EXTENDED, width=width)
+                                  exportselection=tk.FALSE,
+                                  font='Courier', height=24,
+                                  highlightthickness=0, selectmode=tk.EXTENDED,
+                                  width=width)
         self.listbox.pack(fill=tk.X)
         self.listbox.bind('<Enter>', self.on_enter)
 
@@ -61,9 +47,8 @@ class Column(ttk.Frame):
 
 
 class Table(ttk.Frame):
-
     def __init__(self, top, columns, select_callback, autoscroll_var,
-        copy_callback):
+                 copy_callback):
         ttk.Frame.__init__(self, top)
         self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
 
@@ -91,7 +76,7 @@ class Table(ttk.Frame):
         self.select_callback = select_callback
 
         self.colors = ('white', 'white smoke')
-        self.color = color_generator(self.colors)
+        self.color = cycle(self.colors)
 
         self.autoscroll = autoscroll_var
 
@@ -105,7 +90,7 @@ class Table(ttk.Frame):
                     column.listbox.see(tk.END)
 
     def clear(self):
-        self.color = color_generator(self.colors)
+        self.color = cycle(self.colors)
         for column in self.columns:
             column.listbox.delete(0, tk.END)
 
@@ -143,7 +128,6 @@ class Table(ttk.Frame):
 
 
 class Filter(ttk.Frame):
-
     list = []
     conditions_list = []
 
@@ -157,25 +141,25 @@ class Filter(ttk.Frame):
         frm_error.pack(side=tk.LEFT, fill=tk.Y)
 
         lbl_error = ttk.Label(frm_error, anchor=tk.CENTER, justify=tk.CENTER,
-            textvariable=self.error)
+                              textvariable=self.error)
         lbl_error.pack(side=tk.LEFT, expand=tk.TRUE)
 
         self.conditions = []
-        for key, width, base, t_values, fmt in filter_entries:
+        for key, width, base, validator, fmt in filter_entries:
             frame = tk.Frame(self, width=width)
             frame.pack_propagate(tk.FALSE)
             frame.pack(side=tk.LEFT, fill=tk.Y)
-            if base is str:
+            if base is str and isinstance(validator, (list, tuple)):
                 widget = ttk.Combobox(frame)
-                widget['values'] = t_values
+                widget['values'] = validator
                 widget.pack(side=tk.LEFT, expand=tk.TRUE)
             else:
                 widget = ttk.Entry(frame)
                 widget.pack(side=tk.LEFT)
-            self.conditions.append((key, (widget, base, t_values, fmt)))
+            self.conditions.append((key, (widget, base, validator, fmt)))
 
-        self.btn_apply = ttk.Button(self, text='Remove', command=self.delete)
-        self.btn_apply.pack(side=tk.LEFT)
+        self.btn_remove = ttk.Button(self, text='Remove', command=self.delete)
+        self.btn_remove.pack(side=tk.LEFT)
         self.append(self)
 
     @classmethod
@@ -186,7 +170,7 @@ class Filter(ttk.Frame):
     def remove(cls, instance):
         cls.list.remove(instance)
         if (not any((cls.conditions_list, cls.list)) and
-            hasattr(cls, 'empty_callback')):
+                hasattr(cls, 'empty_callback')):
             cls.empty_callback()
 
     @classmethod
@@ -212,12 +196,12 @@ class Filter(ttk.Frame):
                     key, (entry, base, _, _) = condition
                     _value = entry.get()
                     if base is str:
-                        value = _value if _value else -1
+                        value = _value if _value else None
                     else:
                         try:
                             value = int(_value, base)
                         except ValueError:
-                            value = -1
+                            value = None
                     f_conditions.append((key, value))
                 conditions_list.append(f_conditions)
         if not_valid_list:
@@ -232,11 +216,10 @@ class Filter(ttk.Frame):
     @staticmethod
     def check(packet, conditions):
         for key, value in conditions:
-            p_value = getattr(packet, key)
-            if type(p_value) is bytearray:
-                p_value = p_value.decode()
-            if value not in (-1, p_value):
-                return False
+            packet_value = getattr(packet, key)
+            if value is None or value == packet_value:
+                continue
+            return False
         return True
 
     def delete(self):
@@ -248,23 +231,29 @@ class Filter(ttk.Frame):
         filled = 0
         first = None
         for _, value in self.conditions:
-            entry, base, t_values, fmt = value
+            entry, base, validator, fmt = value
             if not first and base is not str:
                 first = entry
             try:
-                e_value = entry.get().strip()
-                if e_value:
+                value = entry.get().strip()
+                if value:
                     if base is str:
-                        e_value = format(e_value[:10], fmt)
+                        if callable(validator):
+                            try:
+                                validator(value)
+                            except:
+                                raise ValueError
+                        else:
+                            value = format(value[:10], fmt)
                     else:
-                        minimum, maximum = t_values
-                        i_value = int(e_value, base)
+                        minimum, maximum = validator
+                        i_value = int(value, base)
                         if not minimum <= i_value <= maximum:
                             raise ValueError('not in range')
-                        e_value = format(i_value, fmt)
+                        value = format(i_value, fmt)
                     filled += 1
                 entry.delete(0, tk.END)
-                entry.insert(0, e_value)
+                entry.insert(0, value)
             except ValueError:
                 not_valid.append(entry)
                 break
@@ -277,23 +266,19 @@ class Filter(ttk.Frame):
             self.error.set('')
 
 
-class ListenerGui(ttk.Frame):
-
+class MonitorGui(ttk.Frame):
     def __init__(self):
-        smartbus.init(no_sender=True)
-
         ttk.Frame.__init__(self)
         style = ttk.Style()
         if style.theme_use() == 'default':
             style.theme_use('alt')
         self.master.resizable(tk.FALSE, tk.FALSE)
-        self.master.title('SmartBus Listener NG ({0}) - {1}'.format(
-            __version__, __copyright__))
+        self.master.title(TITLE)
         try:
-            self.master.iconbitmap('sblistenerng.ico')
+            self.master.iconbitmap('hdlmonitor.ico')
         except tk.TclError:
             ttk.Style().theme_use('alt')
-            icon = tk.PhotoImage(file='sblistenerng.gif')
+            icon = tk.PhotoImage(file='hdlmonitor.gif')
             self.master.tk.call('wm', 'iconphoto', self.master._w, icon)
 
         self.pack(fill=tk.BOTH, expand=tk.TRUE, padx=5, pady=5)
@@ -302,10 +287,10 @@ class ListenerGui(ttk.Frame):
         buttonbar.pack(fill=tk.X, padx=5, pady=5)
 
         self.btn_start = ttk.Button(buttonbar, text='Start',
-            command=self.start, width=10)
+                                    command=self.start, width=10)
 
         self.btn_stop = ttk.Button(buttonbar, text='Stop',
-            command=self.stop, width=10)
+                                   command=self.stop, width=10)
 
         buttongroup = ttk.Frame(buttonbar)
         buttongroup.pack(expand=tk.TRUE, fill=tk.X, side=tk.RIGHT)
@@ -314,33 +299,37 @@ class ListenerGui(ttk.Frame):
         autoscroll_var.set(tk.TRUE)
 
         autoscroll_cb = ttk.Checkbutton(buttongroup, text='Autoscroll',
-            var=autoscroll_var)
+                                        var=autoscroll_var)
         autoscroll_cb.pack(padx=5, side=tk.LEFT)
 
         self.btn_copy = ttk.Button(buttongroup,
-            text='Copy to clipboard', command=self.copy,
-            state=tk.DISABLED)
+                                   text='Copy to clipboard', command=self.copy,
+                                   state=tk.DISABLED)
         self.btn_copy.pack(side=tk.RIGHT)
 
         self.btn_clear = ttk.Button(buttongroup, text='Clear',
-            command=self.clear, state=tk.DISABLED)
+                                    command=self.clear, state=tk.DISABLED)
         self.btn_clear.pack(side=tk.RIGHT)
 
-        self.table = Table(self, (
-            ('Timestamp', 14),
-            ('Header', 12),
-            ('Source\nSubnetID', 5),
-            ('Source\nDeviceID', 5),
-            ('Source\nDevice Type', 7),
-            ('Command\n(hex)', 6),
-            ('Destination\nSubnetID', 5),
-            ('Destination\nDeviceID', 5),
-            ('Data (hex)', 25),
-            ('Data (ASCII)', 10),
-        ),
-        self.select_callback,
-        autoscroll_var,
-        self.copy)
+        self.table = Table(
+            self,
+            (
+                ('Timestamp', 14),
+                ('IP Address', 17),
+                ('Head', 12),
+                ('Subnet ID', 5),
+                ('Device ID', 5),
+                ('Device Type', 7),
+                ('Operation\nCode (hex)', 6),
+                ('Target\nSubnet ID', 5),
+                ('Target\nDevice ID', 5),
+                ('Content (hex)', 25),
+                ('Content (ASCII)', 10),
+            ),
+            self.select_callback,
+            autoscroll_var,
+            self.copy
+        )
 
         self.filters = ttk.Frame(self)
         self.filters.pack(expand=tk.TRUE, fill=tk.X)
@@ -351,15 +340,19 @@ class ListenerGui(ttk.Frame):
         Filter.empty_callback = self.empty_filters
 
         btn_addfilter = ttk.Button(filterbuttons, text='Add filter',
-            command=self.add_filter)
+                                   command=self.add_filter)
         btn_addfilter.pack(side=tk.LEFT)
 
         self.btn_applyfilter = ttk.Button(filterbuttons, text='Apply',
-            command=self.apply_filters, state=tk.DISABLED)
+                                          command=self.apply_filters,
+                                          state=tk.DISABLED)
         self.btn_applyfilter.pack(side=tk.LEFT)
 
-        self.listener = smartbus.Device(register=False)
-        self.listener.receive_func = self.receive_func
+        self.monitor = hdlmiracle.Monitor()
+        self.monitor.receive = self.receive
+
+        self.bus = hdlmiracle.IPBus(strict=False)
+        self.bus.start()
 
         self.packets = []
         self.processing = True
@@ -369,23 +362,24 @@ class ListenerGui(ttk.Frame):
         self.start()
         self.mainloop()
 
-    def __del__(self):
-        smartbus.quit()
-
     def add_filter(self):
         columns = [column.label.winfo_width() for column in self.table.columns]
         combo_values = ['']
-        combo_values.extend(x.decode() for x in smartbus.HEADERS)
-        Filter(self.filters, (
-            ('header', columns[1], str, combo_values, '10s'),
-            ('src_netid', columns[2], 10, (0, 255), 'd'),
-            ('src_devid', columns[3], 10, (0, 255), 'd'),
-            ('src_devtype', columns[4], 10, (0, 65535), 'd'),
-            ('opcode', columns[5], 16, (0, 0xffff), '04x'),
-            ('netid', columns[6], 10, (0, 255), 'd'),
-            ('devid', columns[7], 10, (0, 255), 'd'),
+        combo_values.extend(x.decode() for x in hdlmiracle.HEADS)
+        Filter(
+            self.filters,
+            (
+                ('ipaddress', columns[1], str, hdlmiracle.IPAddress, '15s'),
+                ('head', columns[2], str, combo_values, '10s'),
+                ('subnet_id', columns[3], 10, (0, 255), 'd'),
+                ('device_id', columns[4], 10, (0, 255), 'd'),
+                ('device_type', columns[5], 10, (0, 65535), 'd'),
+                ('operation_code', columns[6], 16, (0, 0xffff), '04x'),
+                ('target_subnet_id', columns[7], 10, (0, 255), 'd'),
+                ('target_device_id', columns[8], 10, (0, 255), 'd'),
             ),
-        columns[0])
+            columns[0],
+        )
         self.btn_applyfilter.config(state=tk.NORMAL)
 
     def empty_filters(self):
@@ -394,12 +388,10 @@ class ListenerGui(ttk.Frame):
     def apply_filters(self):
         nv = Filter.validate()
         if not nv:
-            smartbus.pause()
             self.table.clear()
             for now, packet in self.packets:
                 if Filter.filter(packet):
                     self.append_n(now, packet)
-            smartbus.resume()
 
     def append_1(self, now, packet):
         self.btn_clear.config(state=tk.NORMAL)
@@ -407,54 +399,47 @@ class ListenerGui(ttk.Frame):
         self.append(now, packet)
 
     def append_n(self, now, packet):
-        packet_len = len(packet.data)
-
-        data = []
-
-        for d in range(0, packet_len, 8):
-            data_hex = []
-            data_ascii = []
-            for i in packet.data[d:d + 8]:
-                data_hex.append(format(i, '02x'))
-                data_ascii.append(chr(i) if i >= 0x20 and i < 0x7f else '.')
-            data.append([' '.join(data_hex), ''.join(data_ascii)])
+        data = [(str(line), line.ascii()) for line in packet.content.step()]
 
         if data:
             row = [[
                 ' {0:12s}'.format(str(now)),
-                ' {0:10s}'.format(packet.header.decode()),
-                format(packet.src_netid, '>4d'),
-                format(packet.src_devid, '>4d'),
-                format(packet.src_devtype, '>6d'),
-                format(packet.opcode_hex0, '>5s'),
-                format(packet.netid, '>4d'),
-                format(packet.devid, '>4d'),
+                ' {0:15s}'.format(str(packet.ipaddress)),
+                ' {0:10s}'.format(packet.head),
+                '{0:>4d}'.format(packet.subnet_id),
+                '{0:>4d}'.format(packet.device_id),
+                '{0:>6d}'.format(packet.device_type),
+                '{0:>5s}'.format(str(packet.operation_code)),
+                '{0:>4d}'.format(packet.target_subnet_id),
+                '{0:>4d}'.format(packet.target_device_id),
                 ' {0:23s}'.format(data[0][0]),
                 ' {0:8s}'.format(data[0][1]),
             ]]
-            for d in data[1:]:
+            for _hex, ascii in data[1:]:
                 row.append([
-                    '             ',
-                    '           ',
-                    '    ',
-                    '    ',
-                    '      ',
-                    '     ',
-                    '    ',
-                    '    ',
-                    ' {0:23s}'.format(d[0]),
-                    ' {0:8s}'.format(d[1]),
+                    ' ' * 13,
+                    ' ' * 16,
+                    ' ' * 11,
+                    ' ' * 4,
+                    ' ' * 4,
+                    ' ' * 6,
+                    ' ' * 5,
+                    ' ' * 4,
+                    ' ' * 4,
+                    ' {0:23s}'.format(_hex),
+                    ' {0:8s}'.format(ascii),
                 ])
         else:
             row = [[
                 ' {0:12s}'.format(str(now)),
-                ' {0:10s}'.format(packet.header.decode()),
-                format(packet.src_netid, '>4d'),
-                format(packet.src_devid, '>4d'),
-                format(packet.src_devtype, '>6d'),
-                format(packet.opcode_hex0, '>5s'),
-                format(packet.netid, '>4d'),
-                format(packet.devid, '>4d'),
+                ' {0:15s}'.format(str(packet.ipaddress)),
+                ' {0:10s}'.format(packet.head),
+                '{0:>4d}'.format(packet.subnet_id),
+                '{0:>4d}'.format(packet.device_id),
+                '{0:>6d}'.format(packet.device_type),
+                '{0:>5s}'.format(str(packet.operation_code)),
+                '{0:>4d}'.format(packet.target_subnet_id),
+                '{0:>4d}'.format(packet.target_device_id),
                 '',
                 '',
             ]]
@@ -468,15 +453,15 @@ class ListenerGui(ttk.Frame):
         self.btn_copy.config(state=tk.DISABLED)
         self.append = self.append_1
 
-    def copy(self, *args):
+    def copy(self, *_):
         rows = []
         for row in self.table.selection_get():
-            rows.append(' '.join(row)[1:])
+            rows.append(' '.join(row)[1:].rstrip())
         text = linesep.join(rows) + linesep
         self.clipboard_clear()
         self.clipboard_append(text)
 
-    def receive_func(self, packet):
+    def receive(self, packet):
         _now = datetime.now().time()
         now = '{0.hour:02d}:{0.minute:02d}:{0.second:02d}.{1:03d}'.format(
             _now, _now.microsecond // 1000
@@ -495,13 +480,13 @@ class ListenerGui(ttk.Frame):
     def start(self):
         self.btn_start.pack_forget()
         self.btn_stop.pack(side=tk.LEFT)
-        self.listener.register()
+        self.bus.attach(self.monitor)
 
     def stop(self):
         self.btn_stop.pack_forget()
         self.btn_start.pack(side=tk.LEFT)
-        self.listener.unregister()
+        self.bus.detach(self.monitor)
 
 
 if __name__ == '__main__':
-    ListenerGui()
+    MonitorGui()

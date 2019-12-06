@@ -7,7 +7,7 @@ from cx_Freeze import setup, Executable
 
 import patch
 
-from sblistenerng import __version__ as version
+from hdlmonitor import __version__ as version
 
 
 def rm_empty_subdirs(directory):
@@ -16,11 +16,11 @@ def rm_empty_subdirs(directory):
             dr = os.path.join(root, d)
             try:
                 os.rmdir(dr)
-            except:
+            except OSError:
                 rm_empty_subdirs(dr)
 
 
-name = 'sblistenerng'
+name = 'hdlmonitor'
 icon = '%s.ico' % name
 
 arch = distutils.util.get_platform()
@@ -84,7 +84,7 @@ build_exe_options = {
 setup(
     name=name,
     version=version,
-    description='SmartBus Listener NG',
+    description='HDL Bus Monitor',
     options={
         'build_exe': build_exe_options,
     },
@@ -98,8 +98,8 @@ setup(
 
 keep = [
     ['python27.dll'],
-    ['sblistenerng.exe'],
-    ['sblistenerng.ico'],
+    ['hdlmonitor.exe'],
+    ['hdlmonitor.ico'],
     ['tcl85.dll'],
     ['tk85.dll'],
     ['unicodedata.pyd'],
@@ -150,7 +150,7 @@ os.chdir(dist_dir)
 zip_name = '%s.zip' % target_name
 try:
     os.remove(zip_name)
-except:
+except OSError:
     pass
 with zipfile.ZipFile(zip_name, 'w', zipfile.ZIP_DEFLATED) as dist_zip:
     for root, dirs, files in os.walk(target_name):
