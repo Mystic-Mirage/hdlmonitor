@@ -365,7 +365,7 @@ class MonitorGui(ttk.Frame):
     def add_filter(self):
         columns = [column.label.winfo_width() for column in self.table.columns]
         combo_values = ['']
-        combo_values.extend(x.decode() for x in hdlmiracle.HEADS)
+        combo_values.extend(hdlmiracle.HEADS)
         Filter(
             self.filters,
             (
